@@ -38,6 +38,7 @@ fn main() {
     )
     .add_systems(Startup, setup)
     .add_systems(Update, cursor_events)
+    .register_type::<FishPoints>()
     .run();
 }
 

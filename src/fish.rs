@@ -2,6 +2,7 @@ use std::{time::Duration, default};
 
 use bevy::{prelude::{*, default}, core_pipeline::clear_color::ClearColorConfig};
 use bevy_inspector_egui::{InspectorOptions, prelude::ReflectInspectorOptions};
+use rand::prelude::*;
 
 pub struct FishPlugin {
     
@@ -9,10 +10,11 @@ pub struct FishPlugin {
 #[derive(Component, InspectorOptions, Default, Reflect)]
 #[reflect(Component, InspectorOptions)]
 pub struct Fish {
-    
+    velocity: Vec2<>,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
 pub struct FishRespawnTimer {
     pub respawn_timer: Timer,
 }
@@ -27,7 +29,10 @@ impl Plugin for FishPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app
         .init_resource::<FishRespawnTimer>()
-        .add_systems(Update, fish_respawn_cycle);
+        .register_type::<FishRespawnTimer>()
+        .register_type::<Fish>()
+        .add_systems(Update, fish_respawn_cycle)
+        .add_systems(Update, swim_fish);
     }
 }
 
@@ -66,7 +71,44 @@ fn spawn_fish(
             texture,
             ..default()
         },
-        Fish {},
+
+        Fish {velocity: Vec2::new((rand::random::<f32>() - 0.5) * 500.0, (rand::random::<f32>() - 0.5) * 500.0)},
         Name::new("Fish"),
     ));
+}
+
+fn swim_fish(
+    mut fish_query: Query<(&mut Transform, &mut Fish)>,
+    timer: Res<Time>,
+    window: Query<&Window>,
+) {
+    // iterate through fish to make sure all fish swim
+    for (mut fish_transform, mut fish) in fish_query.iter_mut() {
+        // make sure the fish does not go out of bounds
+        let fish_x = fish_transform.translation.x + fish.velocity.x * timer.delta().as_secs_f32();
+        let fish_y = fish_transform.translation.y + fish.velocity.y * timer.delta().as_secs_f32();
+        // top check
+        if fish_y > window.single().resolution.height() / 2.0 {
+            fish.velocity.y *= -1.0;
+        }
+        // bottom check
+        if fish_y < window.single().resolution.height() / -2.0 {
+            fish.velocity.y *= -1.0;
+        }
+        // left check
+        if fish_x < window.single().resolution.width() / -2.0 {
+            fish.velocity.x *= -1.0;
+        }
+        // right check
+        if fish_x > window.single().resolution.width() / 2.0 {
+            fish.velocity.x *= -1.0;
+        }
+
+        // translate fish by velocity
+        fish_transform.translation.x += fish.velocity.x * timer.delta().as_secs_f32();
+        fish_transform.translation.y += fish.velocity.y * timer.delta().as_secs_f32();
+        
+    }
+
+    
 }
