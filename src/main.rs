@@ -16,6 +16,7 @@ pub struct Player{
     click_timer: Timer,
 }
 
+
 fn main() {
     App::new()
     .add_plugins(DefaultPlugins
@@ -122,11 +123,8 @@ fn cursor_events(
 
                 // tell the world they got a fish
                 info!("Fish Caught! Fish: {}", fish_points.0);
-            }
-
-            
+            }   
         }
-
     }
 
     // tick the click timer
