@@ -1,9 +1,11 @@
 use std::time::Duration;
 mod fish;
+mod ui;
 
 use bevy::{prelude::*, core_pipeline::clear_color::ClearColorConfig, input::common_conditions::input_toggle_active, window::PrimaryWindow, sprite::collide_aabb::collide, math::vec2};
 use bevy_inspector_egui::{quick::WorldInspectorPlugin, InspectorOptions, prelude::ReflectInspectorOptions};
 use fish::{FishPlugin, Fish, FishRespawnTimer};
+use ui::{UIPlugin};
 
 // This resource tracks the cat's fish
 #[derive(Resource, Default, Reflect)]
@@ -35,7 +37,8 @@ fn main() {
     .init_resource::<FishPoints>()
     .add_plugins(
         (WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
-        FishPlugin {}),
+        FishPlugin {},
+        UIPlugin {}),
     )
     .add_systems(Startup, setup)
     .add_systems(Update, cursor_events)
@@ -60,6 +63,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         SpriteBundle {
             texture,
+            transform: Transform::from_translation(Vec3::new(0., 0., 1.0 )),
             ..default()
         },
         Player {click_timer: timer},
